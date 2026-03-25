@@ -1,0 +1,43 @@
+##########################################################################
+# Maestra Cloud Gateway — Dev Overrides (hot reload)
+##########################################################################
+
+services:
+  control-plane:
+    build:
+      context: ./services/control-plane
+      dockerfile: Dockerfile
+    command: uvicorn main:app --host 0.0.0.0 --port 8090 --reload
+    volumes:
+      - ./services/control-plane:/app
+    environment:
+      CONTROL_PLANE_LOG_LEVEL: debug
+      SQL_ECHO: "false"
+
+  message-router:
+    build:
+      context: ./services/message-router
+      dockerfile: Dockerfile
+    volumes:
+      - ./services/message-router:/app
+    # Restart on file changes (watchdog-style)
+    command: python router.py
+
+  dashboard:
+    build:
+      context: ./services/dashboard
+      dockerfile: Dockerfile
+    command: npm run dev
+    volumes:
+      - ./services/dashboard/src:/app/src
+      - ./services/dashboard/public:/app/public
+    environment:
+      NODE_ENV: development
+
+  website:
+    command: npm run dev
+    volumes:
+      - ./services/website/src:/app/src
+      - ./services/website/public:/app/public
+    environment:
+      NODE_ENV: development

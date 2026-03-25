@@ -1,0 +1,134 @@
+# Maestra Cloud Gateway — Envoy Edge Proxy Configuration
+#
+# Terminates TLS, enforces mTLS for Cloud Agents, rate limits,
+# and routes traffic to internal services.
+
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+    # ── mTLS Listener for Cloud Agents ───────────────────────────────
+    - name: agent_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8443
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: agent_ingress
+                codec_type: AUTO
+                route_config:
+                  name: agent_routes
+                  virtual_hosts:
+                    - name: gateway
+                      domains: ["*"]
+                      routes:
+                        # Cloud Agent WebSocket upgrade → NATS WebSocket
+                        - match:
+                            prefix: "/nats"
+                          route:
+                            cluster: cloud_nats_ws
+                            timeout: 0s
+                            upgrade_configs:
+                              - upgrade_type: websocket
+
+                        # Control Plane API
+                        - match:
+                            prefix: "/api/"
+                          route:
+                            cluster: control_plane
+                            timeout: 30s
+
+                        # Health check (no auth required)
+                        - match:
+                            prefix: "/health"
+                          route:
+                            cluster: control_plane
+                            timeout: 5s
+
+                http_filters:
+                  # Rate limiting
+                  - name: envoy.filters.http.local_ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                      stat_prefix: http_local_rate_limiter
+                      token_bucket:
+                        max_tokens: 1000
+                        tokens_per_fill: 100
+                        fill_interval: 1s
+                      filter_enabled:
+                        runtime_key: local_rate_limit_enabled
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+                      filter_enforced:
+                        runtime_key: local_rate_limit_enforced
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+          # TLS with mutual authentication
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              require_client_certificate: true
+              common_tls_context:
+                tls_params:
+                  tls_minimum_protocol_version: TLSv1_3
+                tls_certificates:
+                  - certificate_chain:
+                      filename: /certs/server.crt
+                    private_key:
+                      filename: /certs/server.key
+                validation_context:
+                  trusted_ca:
+                    filename: /certs/ca.crt
+                  # In production, add CRL or OCSP stapling here
+
+  clusters:
+    # Cloud NATS (WebSocket endpoint for agents)
+    - name: cloud_nats_ws
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: cloud_nats_ws
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: cloud-nats
+                      port_value: 4223
+
+    # Control Plane API
+    - name: control_plane
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: control_plane
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: gateway-control-plane
+                      port_value: 8090
+      health_checks:
+        - timeout: 5s
+          interval: 10s
+          unhealthy_threshold: 3
+          healthy_threshold: 2
+          http_health_check:
+            path: /health

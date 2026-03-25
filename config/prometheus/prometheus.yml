@@ -1,0 +1,21 @@
+# Maestra Cloud Gateway — Prometheus Configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "control-plane"
+    static_configs:
+      - targets: ["gateway-control-plane:8090"]
+    metrics_path: /metrics
+
+  - job_name: "nats"
+    static_configs:
+      - targets: ["cloud-nats:8223"]
+    metrics_path: /metrics
+
+  - job_name: "envoy"
+    static_configs:
+      - targets: ["gateway-edge-proxy:9901"]
+    metrics_path: /stats/prometheus

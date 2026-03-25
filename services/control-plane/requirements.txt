@@ -1,0 +1,42 @@
+# Maestra Cloud Gateway — Control Plane Dependencies
+
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+
+# Redis
+redis[hiredis]==5.2.1
+
+# NATS
+nats-py==2.9.0
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.18
+
+# TLS / Certificates
+cryptography==44.0.0
+
+# Validation
+pydantic==2.10.3
+pydantic-settings==2.7.0
+
+# HTTP client (for OIDC discovery)
+httpx==0.28.1
+
+# Observability
+opentelemetry-api==1.29.0
+opentelemetry-sdk==1.29.0
+opentelemetry-exporter-otlp==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+prometheus-client==0.21.1
+structlog==24.4.0
+
+# Utilities
+python-dotenv==1.0.1

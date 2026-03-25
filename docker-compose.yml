@@ -1,0 +1,227 @@
+##########################################################################
+# Maestra Cloud Gateway — Docker Compose (Development)
+##########################################################################
+
+services:
+
+  # ─── Message Bus ─────────────────────────────────────────────────────
+  cloud-nats:
+    image: nats:2.10-alpine
+    container_name: cloud-nats
+    command: >
+      --config /etc/nats/nats-server.conf
+    ports:
+      - "4223:4223"   # Client connections
+      - "8223:8223"   # HTTP monitoring
+    volumes:
+      - ./config/nats/nats-server.conf:/etc/nats/nats-server.conf:ro
+      - nats-data:/data
+    networks:
+      - gateway-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8223/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── Database ────────────────────────────────────────────────────────
+  gateway-postgres:
+    image: postgres:16-alpine
+    container_name: gateway-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gateway}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gateway_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-gateway}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - gateway-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Cache / State ──────────────────────────────────────────────────
+  gateway-redis:
+    image: redis:7-alpine
+    container_name: gateway-redis
+    command: redis-server --port 6380 --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6380"
+    volumes:
+      - redis-data:/data
+    networks:
+      - gateway-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── Control Plane API ──────────────────────────────────────────────
+  control-plane:
+    build:
+      context: ./services/control-plane
+      dockerfile: Dockerfile
+    container_name: gateway-control-plane
+    environment:
+      CLOUD_NATS_URL: nats://cloud-nats:4223
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-gateway}:${POSTGRES_PASSWORD:-gateway_dev_password}@gateway-postgres:5432/${POSTGRES_DB:-gateway}
+      REDIS_URL: redis://gateway-redis:6380
+      CA_CERT_PATH: /certs/ca.crt
+      CA_KEY_PATH: /certs/ca.key
+      CONTROL_PLANE_HOST: "0.0.0.0"
+      CONTROL_PLANE_PORT: "8090"
+      CONTROL_PLANE_LOG_LEVEL: info
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./certs:/certs:ro
+    depends_on:
+      gateway-postgres:
+        condition: service_healthy
+      gateway-redis:
+        condition: service_healthy
+      cloud-nats:
+        condition: service_healthy
+    networks:
+      - gateway-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── Message Router ─────────────────────────────────────────────────
+  message-router:
+    build:
+      context: ./services/message-router
+      dockerfile: Dockerfile
+    container_name: gateway-message-router
+    environment:
+      CLOUD_NATS_URL: nats://cloud-nats:4223
+      REDIS_URL: redis://gateway-redis:6380
+    depends_on:
+      cloud-nats:
+        condition: service_healthy
+      gateway-redis:
+        condition: service_healthy
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # ─── Dashboard ──────────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ./services/dashboard
+      dockerfile: Dockerfile
+    container_name: gateway-dashboard
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8090
+      NEXT_PUBLIC_WS_URL: ws://localhost:8090/ws
+    ports:
+      - "3002:3000"
+    depends_on:
+      control-plane:
+        condition: service_healthy
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # ─── Edge Proxy (Envoy) ────────────────────────────────────────────
+  edge-proxy:
+    image: envoyproxy/envoy:v1.31-latest
+    container_name: gateway-edge-proxy
+    ports:
+      - "8443:8443"    # mTLS endpoint for Cloud Agents
+      - "9901:9901"    # Envoy admin
+    volumes:
+      - ./services/edge-proxy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./certs:/certs:ro
+    depends_on:
+      - cloud-nats
+      - control-plane
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # ─── Observability ─────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: gateway-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: gateway-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SERVER_HTTP_PORT: "3003"
+    ports:
+      - "3003:3003"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: gateway-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # ─── Marketing Website ────────────────────────────────────────────
+  website:
+    build:
+      context: ./services/website
+      dockerfile: Dockerfile
+    container_name: gateway-website
+    ports:
+      - "3001:3000"
+    networks:
+      - gateway-network
+    profiles:
+      - website
+    restart: unless-stopped
+
+# ─── Volumes ───────────────────────────────────────────────────────────
+volumes:
+  nats-data:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+
+# ─── Network ──────────────────────────────────────────────────────────
+networks:
+  gateway-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16

@@ -1,0 +1,62 @@
+##########################################################################
+# Maestra Cloud Agent — Docker Compose Overlay
+#
+# Add this to your local Maestra installation to connect to the Cloud Gateway.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.cloud-agent.yml up -d
+#
+# Or add to your Makefile:
+#   cloud-up:
+#     docker compose -f docker-compose.yml -f docker-compose.cloud-agent.yml up -d
+#
+# Prerequisites:
+#   1. Register your site at the Cloud Gateway dashboard
+#   2. Download the client certificate bundle
+#   3. Place certs in ./certs/cloud/ (client.crt, client.key, ca.crt)
+#   4. Set SITE_ID and SITE_SLUG in your .env file
+##########################################################################
+
+services:
+  cloud-agent:
+    image: ghcr.io/your-org/maestra-cloud-agent:latest
+    # Or build locally:
+    # build:
+    #   context: ./cloud-agent
+    #   dockerfile: Dockerfile
+    container_name: maestra-cloud-agent
+    environment:
+      # Required — get these from the Cloud Gateway dashboard
+      SITE_ID: ${CLOUD_SITE_ID}
+      SITE_SLUG: ${CLOUD_SITE_SLUG}
+
+      # Cloud Gateway connection
+      GATEWAY_API_URL: ${CLOUD_GATEWAY_API_URL:-https://gateway.maestra.cloud:8090}
+      CLOUD_NATS_URL: ${CLOUD_GATEWAY_NATS_URL:-tls://gateway.maestra.cloud:4223}
+
+      # Local Maestra connection (uses Docker service names)
+      LOCAL_NATS_URL: nats://nats:4222
+
+      # TLS certificates
+      CLIENT_CERT_PATH: /certs/client.crt
+      CLIENT_KEY_PATH: /certs/client.key
+      CA_CERT_PATH: /certs/ca.crt
+
+      # Optional site metadata
+      SITE_REGION: ${CLOUD_SITE_REGION:-}
+      SITE_TAGS: ${CLOUD_SITE_TAGS:-[]}
+
+      # Agent tuning
+      HEARTBEAT_INTERVAL: ${CLOUD_HEARTBEAT_INTERVAL:-10}
+    volumes:
+      - ./certs/cloud:/certs:ro
+    networks:
+      - maestra-network
+    depends_on:
+      - nats
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"

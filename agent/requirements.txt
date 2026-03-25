@@ -1,0 +1,8 @@
+# Maestra Cloud Agent — Site-side Sidecar
+nats-py==2.9.0
+websockets==13.1
+structlog==24.4.0
+pydantic==2.10.3
+pydantic-settings==2.7.0
+httpx==0.28.1
+python-dotenv==1.0.1

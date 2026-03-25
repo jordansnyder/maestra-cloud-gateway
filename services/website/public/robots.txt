@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maestra.cc/sitemap.xml

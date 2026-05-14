@@ -1,68 +1,65 @@
-import { ShieldCheck, Route, Fingerprint, Activity, Layers, ScrollText } from 'lucide-react'
 import { FEATURES } from '@/lib/constants'
 import { Container } from '@/components/ui/Container'
+import { Glyph } from '@/components/ui/Glyph'
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll'
 
-const ICON_MAP = {
-  ShieldCheck,
-  Route,
-  Fingerprint,
-  Activity,
-  Layers,
-  ScrollText,
-} as const
-
-function FeatureVisual({ icon }: { icon: keyof typeof ICON_MAP }) {
-  const Icon = ICON_MAP[icon]
-  return (
-    <div className="flex items-center justify-center">
-      <div className="relative">
-        <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center">
-          <Icon className="w-10 h-10 md:w-12 md:h-12 text-cyan-500" strokeWidth={1.5} />
-        </div>
-        <div className="absolute -inset-1 bg-gradient-to-br from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl -z-10" />
-      </div>
-    </div>
-  )
+const GLYPH_FOR_ICON: Record<string, number> = {
+  ShieldCheck: 1,
+  Route: 76,
+  Fingerprint: 75,
+  Activity: 12,
+  Layers: 100,
+  ScrollText: 25,
 }
 
 export function Features() {
   return (
-    <section id="features" className="py-24 md:py-32 bg-zinc-900/50">
+    <section
+      id="features"
+      className="py-24 sm:py-32 md:py-40 border-b border-rule"
+    >
       <Container>
         <AnimateOnScroll>
-          <div className="text-center mb-16 md:mb-24">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Built for What You Build
+          <div className="max-w-3xl mb-16 sm:mb-24">
+            <div className="section-label mb-6">[ 01 // FEATURES ]</div>
+            <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5vw,3.75rem)] leading-[1] text-ink">
+              Built for what <span className="italic font-light">you</span> build.
             </h2>
-            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
-              Secure orchestration designed for creative installations, not server rooms.
-            </p>
           </div>
         </AnimateOnScroll>
 
-        <div className="space-y-16 md:space-y-24">
-          {FEATURES.map((feature, i) => (
-            <AnimateOnScroll key={feature.title} delay={i * 100}>
-              <div
-                className={`flex flex-col ${
-                  i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-                } items-center gap-8 md:gap-16`}
-              >
-                <div className="flex-shrink-0">
-                  <FeatureVisual icon={feature.icon} />
-                </div>
-                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}>
-                  <h3 className="text-xl md:text-2xl font-bold tracking-tight">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-rule border border-rule">
+          {FEATURES.map((feature, i) => {
+            const glyphId = GLYPH_FOR_ICON[feature.icon] ?? 1
+            const num = String(i + 1).padStart(2, '0')
+            return (
+              <AnimateOnScroll key={feature.title} delay={i * 60}>
+                <article className="group relative h-full bg-paper p-8 sm:p-10 transition-colors duration-300 hover:bg-paper-2">
+                  <span className="absolute top-4 right-5 font-mono text-[0.6875rem] tracking-hud text-ink/30">
+                    {num}
+                  </span>
+                  <div className="relative mb-8 flex h-28 w-28 items-center justify-center">
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full border border-rule transition-colors duration-300 group-hover:border-accent/40"
+                    />
+                    <Glyph
+                      set="components"
+                      id={glyphId}
+                      size={72}
+                      className="transition-colors duration-300 group-hover:[background-color:var(--accent)]"
+                    />
+                  </div>
+                  <h3 className="font-sans text-xl font-medium tracking-display text-ink leading-snug">
                     {feature.title}
                   </h3>
-                  <p className="mt-3 text-zinc-400 leading-relaxed max-w-lg">
+                  <p className="mt-3 text-ink/70 leading-relaxed text-[0.9375rem]">
                     {feature.description}
                   </p>
-                </div>
-              </div>
-            </AnimateOnScroll>
-          ))}
+                </article>
+              </AnimateOnScroll>
+            )
+          })}
         </div>
       </Container>
     </section>

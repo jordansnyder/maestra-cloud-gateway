@@ -23,16 +23,16 @@ export function Header() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800/50'
+          ? 'bg-paper/85 backdrop-blur-md border-b border-rule'
           : 'bg-transparent',
       )}
     >
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
-            <span className="text-sm font-bold text-white">M</span>
+      <nav className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-7 h-7 border border-ink flex items-center justify-center">
+            <span className="font-mono text-sm font-bold text-ink leading-none">M</span>
           </div>
-          <span className="text-lg font-bold tracking-tight">Maestra</span>
+          <span className="font-mono uppercase tracking-hud text-xs text-ink">Maestra</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
@@ -40,7 +40,7 @@ export function Header() {
             <a
               key={link.label}
               href={link.href}
-              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+              className="font-mono uppercase tracking-hud text-[0.6875rem] text-ink/70 hover:text-ink transition-colors"
               {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >
               {link.label}
@@ -55,7 +55,7 @@ export function Header() {
         </div>
 
         <button
-          className="md:hidden p-2 -mr-2 text-zinc-400 hover:text-zinc-100 transition-colors"
+          className="md:hidden p-2 -mr-2 text-ink/70 hover:text-ink transition-colors"
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open menu"
         >

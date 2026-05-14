@@ -1,66 +1,67 @@
 import { Container } from '@/components/ui/Container'
+import { Glyph } from '@/components/ui/Glyph'
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll'
 
-const TECH_BADGES = [
-  'NATS', 'FastAPI', 'PostgreSQL', 'mTLS', 'OIDC', 'Redis', 'Envoy',
+const STACK = [
+  { label: 'Sites', detail: 'outbound TLS · zero ports exposed' },
+  { label: 'Edge Proxy', detail: 'Envoy · rate limiting · TLS termination' },
+  { label: 'Auth', detail: 'mTLS + OIDC · cryptographic identity' },
+  { label: 'Message Router', detail: 'policy-driven routing' },
+  { label: 'Cloud NATS', detail: 'isolated accounts per site' },
+  { label: 'Policy Engine', detail: 'every flow explicitly allowed' },
+  { label: 'Control Plane', detail: 'site management, certs, audit' },
+  { label: 'Dashboard', detail: 'real-time monitoring' },
 ]
+
+const TECH = ['NATS', 'FastAPI', 'PostgreSQL', 'mTLS', 'OIDC', 'Redis', 'Envoy']
 
 export function Architecture() {
   return (
-    <section id="architecture" className="py-24 md:py-32 bg-zinc-900/50">
+    <section
+      id="architecture"
+      className="py-24 sm:py-32 md:py-40 bg-ink text-paper border-b border-ink"
+    >
       <Container>
         <AnimateOnScroll>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Built on Serious Infrastructure
+          <div className="max-w-3xl mb-16 sm:mb-24">
+            <div className="font-mono uppercase tracking-hud text-[0.6875rem] text-paper/60 mb-6">
+              [ 03 // ARCHITECTURE ]
+            </div>
+            <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5vw,3.75rem)] leading-[1] text-paper">
+              Serious infrastructure,
+              <br className="hidden sm:block" />{' '}
+              <span className="italic font-light">creative</span> on the surface.
             </h2>
-            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
-              Creative on the surface. Cryptographically secure underneath.
-            </p>
           </div>
+        </AnimateOnScroll>
+
+        <AnimateOnScroll>
+          <ol className="max-w-3xl">
+            {STACK.map((row, i) => (
+              <li
+                key={row.label}
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)] sm:grid-cols-[3rem_10rem_minmax(0,1fr)] gap-x-4 sm:gap-x-8 items-baseline border-t border-paper/15 py-4"
+              >
+                <span className="font-mono text-[0.6875rem] tracking-hud text-paper/40">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="font-sans text-base sm:text-lg text-paper">
+                  {row.label}
+                </span>
+                <span className="col-span-2 sm:col-span-1 font-mono text-[0.75rem] uppercase tracking-hud text-paper/55 leading-relaxed mt-1 sm:mt-0">
+                  {row.detail}
+                </span>
+              </li>
+            ))}
+            <li className="border-t border-paper/15" />
+          </ol>
         </AnimateOnScroll>
 
         <AnimateOnScroll delay={100}>
-          {/* Architecture diagram */}
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 md:p-10 font-mono text-xs md:text-sm text-zinc-500">
-              <pre className="overflow-x-auto whitespace-pre leading-relaxed">
-{`  Sites (outbound TLS)
-    │
-    ▼
-  Edge Proxy (Envoy)     ← rate limiting, TLS termination
-    │
-    ▼
-  Auth (mTLS + OIDC)     ← cryptographic identity
-    │
-    ▼
-  Message Router         ← policy-driven routing
-    │
-    ├──▶ Cloud NATS      ← isolated accounts per site
-    │
-    ▼
-  Policy Engine
-    │
-    ▼
-  Control Plane API      ← site mgmt, certs, audit
-    │
-    ▼
-  Dashboard              ← real-time monitoring`}
-              </pre>
+          <div className="mt-16 sm:mt-20 max-w-3xl">
+            <div className="font-mono uppercase tracking-hud text-[0.6875rem] text-paper/50">
+              {TECH.join(' · ')}
             </div>
-          </div>
-        </AnimateOnScroll>
-
-        <AnimateOnScroll delay={200}>
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-12">
-            {TECH_BADGES.map((badge) => (
-              <span
-                key={badge}
-                className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-zinc-800 rounded-full bg-zinc-950/50"
-              >
-                {badge}
-              </span>
-            ))}
           </div>
         </AnimateOnScroll>
       </Container>

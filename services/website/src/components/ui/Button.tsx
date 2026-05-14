@@ -5,6 +5,7 @@ type ButtonProps = {
   size?: 'default' | 'lg'
   href?: string
   external?: boolean
+  pip?: boolean
   children: React.ReactNode
   className?: string
 }
@@ -14,16 +15,31 @@ export function Button({
   size = 'default',
   href,
   external,
+  pip,
   children,
   className,
 }: ButtonProps) {
   const classes = cn(
-    'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-zinc-950',
-    variant === 'primary' && 'bg-cyan-500 hover:bg-cyan-400 text-zinc-950',
-    variant === 'secondary' && 'border border-zinc-700 hover:border-zinc-600 text-zinc-300 hover:text-zinc-100',
-    size === 'default' && 'px-6 py-3 text-sm',
-    size === 'lg' && 'px-8 py-4 text-base',
+    'group inline-flex items-center justify-center gap-2.5 font-mono uppercase tracking-hud border transition-colors duration-200 ease-settle focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 focus:ring-offset-paper',
+    variant === 'primary' &&
+      'border-ink bg-ink text-paper hover:bg-paper hover:text-ink',
+    variant === 'secondary' &&
+      'border-ink bg-transparent text-ink hover:bg-ink hover:text-paper',
+    size === 'default' && 'px-5 py-2.5 text-[0.6875rem]',
+    size === 'lg' && 'px-7 py-3.5 text-xs',
     className,
+  )
+
+  const content = (
+    <>
+      {pip && (
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full bg-accent animate-accent-pulse group-hover:bg-current"
+          aria-hidden
+        />
+      )}
+      {children}
+    </>
   )
 
   if (href) {
@@ -33,10 +49,10 @@ export function Button({
         className={classes}
         {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
-        {children}
+        {content}
       </a>
     )
   }
 
-  return <button className={classes}>{children}</button>
+  return <button className={classes}>{content}</button>
 }

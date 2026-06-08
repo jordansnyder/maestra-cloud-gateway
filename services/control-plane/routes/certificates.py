@@ -42,16 +42,21 @@ async def list_certificates(
         select(func.count()).select_from(SiteCertificate).where(*conditions)
     )
 
-    query = (
-        select(SiteCertificate)
+    result = await db.execute(
+        select(SiteCertificate, Site.slug)
+        .join(Site, SiteCertificate.site_id == Site.id, isouter=True)
         .where(*conditions)
         .order_by(SiteCertificate.issued_at.desc())
         .limit(limit)
         .offset(offset)
     )
-    result = await db.execute(query)
+    items = []
+    for cert, slug in result.all():
+        cert.site_slug = slug
+        items.append(cert)
+
     return {
-        "items": result.scalars().all(),
+        "items": items,
         "total": total or 0,
         "limit": limit,
         "offset": offset,

@@ -1,11 +1,11 @@
 """Pydantic schemas for API request/response validation."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Generic, Optional, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 T = TypeVar("T")
 
@@ -196,6 +196,7 @@ class CertificateResponse(BaseModel):
 
     id: UUID
     site_id: UUID
+    site_slug: Optional[str] = None
     serial_number: str
     fingerprint_sha256: str
     common_name: str
@@ -203,6 +204,26 @@ class CertificateResponse(BaseModel):
     expires_at: datetime
     revoked_at: Optional[datetime] = None
     is_active: bool
+
+    # Friendly aliases / derived status the dashboard renders.
+    @computed_field
+    @property
+    def serial(self) -> str:
+        return self.serial_number
+
+    @computed_field
+    @property
+    def fingerprint(self) -> str:
+        return self.fingerprint_sha256
+
+    @computed_field
+    @property
+    def status(self) -> str:
+        if self.revoked_at is not None:
+            return "revoked"
+        if self.expires_at <= datetime.now(timezone.utc):
+            return "expired"
+        return "valid"
 
 
 class CertificateIssueRequest(BaseModel):
@@ -232,9 +253,15 @@ class AuditLogEntry(BaseModel):
     actor_id: Optional[str] = None
     actor_email: Optional[str] = None
     site_id: Optional[UUID] = None
+    site_slug: Optional[str] = None
     resource_type: str
     resource_id: str
     details: Optional[dict] = None
+
+    @computed_field
+    @property
+    def actor(self) -> str:
+        return self.actor_email or self.actor_id or "system"
 
 
 # ─── Metrics ─────────────────────────────────────────────────────────────────

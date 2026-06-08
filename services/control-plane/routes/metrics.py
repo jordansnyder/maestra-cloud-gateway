@@ -115,16 +115,21 @@ async def get_audit_log(
         select(func.count()).select_from(AuditLog).where(*conditions)
     )
 
-    query = (
-        select(AuditLog)
+    result = await db.execute(
+        select(AuditLog, Site.slug)
+        .join(Site, AuditLog.site_id == Site.id, isouter=True)
         .where(*conditions)
         .order_by(AuditLog.timestamp.desc())
         .limit(limit)
         .offset(offset)
     )
-    result = await db.execute(query)
+    items = []
+    for entry, slug in result.all():
+        entry.site_slug = slug
+        items.append(entry)
+
     return {
-        "items": result.scalars().all(),
+        "items": items,
         "total": total or 0,
         "limit": limit,
         "offset": offset,

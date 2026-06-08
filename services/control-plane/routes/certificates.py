@@ -1,10 +1,11 @@
 """Certificate management endpoints."""
 
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import audit
@@ -16,9 +17,45 @@ from models.schemas import (
     CertificateIssueResponse,
     CertificateResponse,
     CertificateRevokeRequest,
+    PaginatedResponse,
 )
 
 router = APIRouter(prefix="/certificates", tags=["certificates"])
+
+
+@router.get("", response_model=PaginatedResponse[CertificateResponse])
+async def list_certificates(
+    site_id: Optional[UUID] = None,
+    active_only: Optional[bool] = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    """List certificates across all sites with optional filtering."""
+    conditions = []
+    if site_id:
+        conditions.append(SiteCertificate.site_id == site_id)
+    if active_only:
+        conditions.append(SiteCertificate.is_active.is_(True))
+
+    total = await db.scalar(
+        select(func.count()).select_from(SiteCertificate).where(*conditions)
+    )
+
+    query = (
+        select(SiteCertificate)
+        .where(*conditions)
+        .order_by(SiteCertificate.issued_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(query)
+    return {
+        "items": result.scalars().all(),
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/site/{site_id}", response_model=list[CertificateResponse])

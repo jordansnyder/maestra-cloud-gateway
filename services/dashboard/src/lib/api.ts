@@ -165,41 +165,41 @@ export async function getSites(params?: {
   if (params?.limit != null) qs.set('limit', String(params.limit))
   if (params?.offset != null) qs.set('offset', String(params.offset))
   const query = qs.toString() ? `?${qs}` : ''
-  return request<PaginatedResponse<Site>>(`/v1/sites${query}`)
+  return request<PaginatedResponse<Site>>(`/api/v1/sites${query}`)
 }
 
 export async function getSite(siteId: string): Promise<Site> {
-  return request<Site>(`/v1/sites/${siteId}`)
+  return request<Site>(`/api/v1/sites/${siteId}`)
 }
 
 export async function createSite(data: SiteCreate): Promise<Site> {
-  return request<Site>('/v1/sites', {
+  return request<Site>('/api/v1/sites', {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
 export async function updateSite(siteId: string, data: Partial<SiteCreate>): Promise<Site> {
-  return request<Site>(`/v1/sites/${siteId}`, {
+  return request<Site>(`/api/v1/sites/${siteId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   })
 }
 
 export async function activateSite(siteId: string): Promise<Site> {
-  return request<Site>(`/v1/sites/${siteId}/activate`, { method: 'POST' })
+  return request<Site>(`/api/v1/sites/${siteId}/activate`, { method: 'POST' })
 }
 
 export async function suspendSite(siteId: string): Promise<Site> {
-  return request<Site>(`/v1/sites/${siteId}/suspend`, { method: 'POST' })
+  return request<Site>(`/api/v1/sites/${siteId}/suspend`, { method: 'POST' })
 }
 
 export async function revokeSite(siteId: string): Promise<Site> {
-  return request<Site>(`/v1/sites/${siteId}/revoke`, { method: 'POST' })
+  return request<Site>(`/api/v1/sites/${siteId}/revoke`, { method: 'POST' })
 }
 
 export async function getSiteStatus(siteId: string): Promise<SiteStatus2> {
-  return request<SiteStatus2>(`/v1/sites/${siteId}/status`)
+  return request<SiteStatus2>(`/api/v1/sites/${siteId}/status`)
 }
 
 // ─── Policies ─────────────────────────────────────────────────────────────────
@@ -218,33 +218,33 @@ export async function getPolicies(params?: {
   if (params?.limit != null) qs.set('limit', String(params.limit))
   if (params?.offset != null) qs.set('offset', String(params.offset))
   const query = qs.toString() ? `?${qs}` : ''
-  return request<PaginatedResponse<Policy>>(`/v1/policies${query}`)
+  return request<PaginatedResponse<Policy>>(`/api/v1/policies${query}`)
 }
 
 export async function getPolicy(policyId: string): Promise<Policy> {
-  return request<Policy>(`/v1/policies/${policyId}`)
+  return request<Policy>(`/api/v1/policies/${policyId}`)
 }
 
 export async function createPolicy(data: PolicyCreate): Promise<Policy> {
-  return request<Policy>('/v1/policies', {
+  return request<Policy>('/api/v1/policies', {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
 export async function updatePolicy(policyId: string, data: Partial<PolicyCreate>): Promise<Policy> {
-  return request<Policy>(`/v1/policies/${policyId}`, {
+  return request<Policy>(`/api/v1/policies/${policyId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   })
 }
 
 export async function deletePolicy(policyId: string): Promise<void> {
-  return request<void>(`/v1/policies/${policyId}`, { method: 'DELETE' })
+  return request<void>(`/api/v1/policies/${policyId}`, { method: 'DELETE' })
 }
 
 export async function togglePolicy(policyId: string, enabled: boolean): Promise<Policy> {
-  return request<Policy>(`/v1/policies/${policyId}`, {
+  return request<Policy>(`/api/v1/policies/${policyId}`, {
     method: 'PATCH',
     body: JSON.stringify({ enabled }),
   })
@@ -264,28 +264,28 @@ export async function getCertificates(params?: {
   if (params?.limit != null) qs.set('limit', String(params.limit))
   if (params?.offset != null) qs.set('offset', String(params.offset))
   const query = qs.toString() ? `?${qs}` : ''
-  return request<PaginatedResponse<Certificate>>(`/v1/certificates${query}`)
+  return request<PaginatedResponse<Certificate>>(`/api/v1/certificates${query}`)
 }
 
 export async function issueCert(data: CertificateIssue): Promise<Certificate> {
-  return request<Certificate>('/v1/certificates', {
+  return request<Certificate>('/api/v1/certificates', {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
 export async function rotateCert(certId: string): Promise<Certificate> {
-  return request<Certificate>(`/v1/certificates/${certId}/rotate`, { method: 'POST' })
+  return request<Certificate>(`/api/v1/certificates/${certId}/rotate`, { method: 'POST' })
 }
 
 export async function revokeCert(certId: string): Promise<void> {
-  return request<void>(`/v1/certificates/${certId}/revoke`, { method: 'POST' })
+  return request<void>(`/api/v1/certificates/${certId}/revoke`, { method: 'POST' })
 }
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
 
 export async function getMetrics(): Promise<GatewayMetrics> {
-  return request<GatewayMetrics>('/v1/metrics')
+  return request<GatewayMetrics>('/api/v1/metrics')
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────
@@ -302,5 +302,5 @@ export async function getAuditLog(
   if (params?.limit != null) qs.set('limit', String(params.limit))
   if (params?.offset != null) qs.set('offset', String(params.offset))
   const query = qs.toString() ? `?${qs}` : ''
-  return request<PaginatedResponse<AuditEntry>>(`/v1/audit${query}`)
+  return request<PaginatedResponse<AuditEntry>>(`/api/v1/audit${query}`)
 }

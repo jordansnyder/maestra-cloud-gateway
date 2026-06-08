@@ -11,6 +11,7 @@ import audit
 from database import get_db
 from models.database import AuditAction, Site, SiteStatus
 from models.schemas import (
+    PaginatedResponse,
     SiteCreate,
     SiteResponse,
     SiteStatusEnum,
@@ -21,7 +22,7 @@ from models.schemas import (
 router = APIRouter(prefix="/sites", tags=["sites"])
 
 
-@router.get("", response_model=list[SiteResponse])
+@router.get("", response_model=PaginatedResponse[SiteResponse])
 async def list_sites(
     status: Optional[SiteStatusEnum] = None,
     region: Optional[str] = None,
@@ -31,17 +32,30 @@ async def list_sites(
     db: AsyncSession = Depends(get_db),
 ):
     """List all registered sites with optional filtering."""
-    query = select(Site).order_by(Site.created_at.desc()).limit(limit).offset(offset)
-
+    conditions = []
     if status:
-        query = query.where(Site.status == status.value)
+        conditions.append(Site.status == status.value)
     if region:
-        query = query.where(Site.region == region)
+        conditions.append(Site.region == region)
     if tag:
-        query = query.where(Site.tags.contains([tag]))
+        conditions.append(Site.tags.contains([tag]))
 
+    total = await db.scalar(select(func.count()).select_from(Site).where(*conditions))
+
+    query = (
+        select(Site)
+        .where(*conditions)
+        .order_by(Site.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     result = await db.execute(query)
-    return result.scalars().all()
+    return {
+        "items": result.scalars().all(),
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/count")

@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import audit
@@ -12,6 +12,7 @@ import policy_engine
 from database import get_db
 from models.database import AuditAction, RoutingPolicy, Site
 from models.schemas import (
+    PaginatedResponse,
     PolicyCreate,
     PolicyResponse,
     PolicyTestRequest,
@@ -22,27 +23,45 @@ from models.schemas import (
 router = APIRouter(prefix="/policies", tags=["policies"])
 
 
-@router.get("", response_model=list[PolicyResponse])
+@router.get("", response_model=PaginatedResponse[PolicyResponse])
 async def list_policies(
     site_id: Optional[UUID] = None,
     enabled: Optional[bool] = None,
     direction: Optional[str] = None,
+    action: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
     """List routing policies with optional filtering."""
-    query = select(RoutingPolicy).order_by(
-        RoutingPolicy.site_id, RoutingPolicy.priority.asc()
+    conditions = []
+    if site_id:
+        conditions.append(RoutingPolicy.site_id == site_id)
+    if enabled is not None:
+        conditions.append(RoutingPolicy.enabled == enabled)
+    if direction:
+        conditions.append(RoutingPolicy.direction == direction)
+    if action:
+        conditions.append(RoutingPolicy.action == action)
+
+    total = await db.scalar(
+        select(func.count()).select_from(RoutingPolicy).where(*conditions)
     )
 
-    if site_id:
-        query = query.where(RoutingPolicy.site_id == site_id)
-    if enabled is not None:
-        query = query.where(RoutingPolicy.enabled == enabled)
-    if direction:
-        query = query.where(RoutingPolicy.direction == direction)
-
+    query = (
+        select(RoutingPolicy)
+        .where(*conditions)
+        .order_by(RoutingPolicy.site_id, RoutingPolicy.priority.asc())
+        .limit(limit)
+        .offset(offset)
+    )
     result = await db.execute(query)
-    return result.scalars().all()
+    return {
+        "items": result.scalars().all(),
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.post("/{site_id}", response_model=PolicyResponse, status_code=201)

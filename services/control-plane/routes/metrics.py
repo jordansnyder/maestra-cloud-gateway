@@ -10,7 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from models.database import AuditLog, RoutingPolicy, Site, SiteCertificate, SiteStatus
-from models.schemas import AuditLogEntry, GatewayMetrics, SiteThroughput
+from models.schemas import (
+    AuditLogEntry,
+    GatewayMetrics,
+    PaginatedResponse,
+    SiteThroughput,
+)
 
 router = APIRouter(tags=["metrics"])
 
@@ -85,7 +90,7 @@ async def get_throughput(
     ]
 
 
-@router.get("/audit", response_model=list[AuditLogEntry])
+@router.get("/audit", response_model=PaginatedResponse[AuditLogEntry])
 async def get_audit_log(
     site_id: Optional[UUID] = None,
     action: Optional[str] = None,
@@ -96,21 +101,31 @@ async def get_audit_log(
     db: AsyncSession = Depends(get_db),
 ):
     """Query the audit log."""
+    conditions = []
+    if site_id:
+        conditions.append(AuditLog.site_id == site_id)
+    if action:
+        conditions.append(AuditLog.action == action)
+    if actor_id:
+        conditions.append(AuditLog.actor_id == actor_id)
+    if since:
+        conditions.append(AuditLog.timestamp >= since)
+
+    total = await db.scalar(
+        select(func.count()).select_from(AuditLog).where(*conditions)
+    )
+
     query = (
         select(AuditLog)
+        .where(*conditions)
         .order_by(AuditLog.timestamp.desc())
         .limit(limit)
         .offset(offset)
     )
-
-    if site_id:
-        query = query.where(AuditLog.site_id == site_id)
-    if action:
-        query = query.where(AuditLog.action == action)
-    if actor_id:
-        query = query.where(AuditLog.actor_id == actor_id)
-    if since:
-        query = query.where(AuditLog.timestamp >= since)
-
     result = await db.execute(query)
-    return result.scalars().all()
+    return {
+        "items": result.scalars().all(),
+        "total": total or 0,
+        "limit": limit,
+        "offset": offset,
+    }

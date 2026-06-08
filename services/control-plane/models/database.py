@@ -69,6 +69,21 @@ class UserRole(str, PyEnum):
     VIEWER = "viewer"
 
 
+def _pg_enum(py_enum, name):
+    """Bind a Python enum to its existing PostgreSQL type.
+
+    The SQL schema (001_initial_schema.sql) created snake_case enum types
+    (e.g. ``site_status``) whose members are the lowercase *values*. Without
+    this, SQLAlchemy would derive the type name from the class (``sitestatus``)
+    and store member *names* (``PENDING``) — neither of which matches the DB.
+    """
+    return Enum(
+        py_enum,
+        name=name,
+        values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    )
+
+
 # ─── Models ──────────────────────────────────────────────────────────────────
 
 
@@ -81,7 +96,7 @@ class Site(Base):
     name = Column(String(255), nullable=False)
     slug = Column(String(255), nullable=False, unique=True)
     description = Column(Text, nullable=True)
-    status = Column(Enum(SiteStatus), nullable=False, default=SiteStatus.PENDING)
+    status = Column(_pg_enum(SiteStatus, "site_status"), nullable=False, default=SiteStatus.PENDING)
 
     # Location
     region = Column(String(100), nullable=True)
@@ -132,8 +147,8 @@ class RoutingPolicy(Base):
     priority = Column(Integer, nullable=False, default=100)
 
     # Rule definition
-    direction = Column(Enum(PolicyDirection), nullable=False)
-    action = Column(Enum(PolicyAction), nullable=False, default=PolicyAction.ALLOW)
+    direction = Column(_pg_enum(PolicyDirection, "policy_direction"), nullable=False)
+    action = Column(_pg_enum(PolicyAction, "policy_action"), nullable=False, default=PolicyAction.ALLOW)
     subject_pattern = Column(String(500), nullable=False)  # NATS subject pattern with wildcards
 
     # Destinations (for outbound rules)
@@ -220,7 +235,7 @@ class AuditLog(Base):
     timestamp = Column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
     )
-    action = Column(Enum(AuditAction), nullable=False)
+    action = Column(_pg_enum(AuditAction, "audit_action"), nullable=False)
     actor_id = Column(String(255), nullable=True)  # user ID or "system"
     actor_email = Column(String(255), nullable=True)
     site_id = Column(UUID(as_uuid=True), nullable=True)
@@ -250,7 +265,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), nullable=False, unique=True)
     name = Column(String(255), nullable=True)
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.VIEWER)
+    role = Column(_pg_enum(UserRole, "user_role"), nullable=False, default=UserRole.VIEWER)
     is_active = Column(Boolean, nullable=False, default=True)
 
     # OIDC subject (external identity)

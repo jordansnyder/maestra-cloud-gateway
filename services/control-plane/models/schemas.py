@@ -2,10 +2,21 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Envelope for paginated list endpoints."""
+
+    items: list[T]
+    total: int
+    limit: int
+    offset: int
 
 
 # ─── Enums ───────────────────────────────────────────────────────────────────
@@ -68,10 +79,15 @@ class SiteUpdate(BaseModel):
 
 
 class SiteResponse(SiteBase):
-    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    model_config = ConfigDict(
+        from_attributes=True, use_enum_values=True, populate_by_name=True
+    )
 
     id: UUID
     status: SiteStatusEnum
+    # ORM attribute is `site_metadata`; `.metadata` on a SQLAlchemy model is the
+    # MetaData registry, not the JSON column.
+    metadata: Optional[dict] = Field(default=None, validation_alias="site_metadata")
     nats_account: Optional[str] = None
     last_connected_at: Optional[datetime] = None
     last_heartbeat_at: Optional[datetime] = None
@@ -140,11 +156,15 @@ class PolicyUpdate(BaseModel):
 
 
 class PolicyResponse(PolicyBase):
-    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
+    model_config = ConfigDict(
+        from_attributes=True, use_enum_values=True, populate_by_name=True
+    )
 
     id: UUID
     site_id: UUID
     version: int
+    # ORM attribute is `policy_metadata` (see SiteResponse note re: `.metadata`).
+    metadata: Optional[dict] = Field(default=None, validation_alias="policy_metadata")
     created_at: datetime
     updated_at: datetime
 

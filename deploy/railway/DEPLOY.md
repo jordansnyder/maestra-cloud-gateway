@@ -20,6 +20,43 @@ deferred — get the core up first, then layer the rest in.
 
 ---
 
+## Continuous deployment (GitHub → Railway)
+
+Every code service is connected to this GitHub repo and **auto-deploys on push to
+`main`**. This replaces the old manual `railway up services/<name> --path-as-root`
+flow — you should no longer need the CLI to ship a routine change.
+
+Because this is a monorepo, each service needs **two** Source settings so it builds
+the right subtree and only rebuilds when *its own* files change:
+
+| Railway service  | Branch | Root Directory            | Watch Path                       | Domain |
+|------------------|--------|---------------------------|----------------------------------|--------|
+| `website`        | `main` | `services/website`        | `services/website/**`            | maestra.cc |
+| `dashboard`      | `main` | `services/dashboard`      | `services/dashboard/**`          | public |
+| `control-plane`  | `main` | `services/control-plane`  | `services/control-plane/**`      | public |
+| `message-router` | `main` | `services/message-router` | `services/message-router/**`     | private |
+| `cloud-nats`     | `main` | `services/nats`           | `services/nats/**`               | private |
+
+Setup per service (Railway dashboard → service → **Settings → Source**):
+
+1. **Connect** the repo + branch — via CLI:
+   `railway service source connect --repo jordansnyder/maestra-cloud-gateway --branch main --service <name>`
+2. **Root Directory** — set to the service's subdir from the table. This makes the
+   Docker build context that subtree, so Railway finds the right `Dockerfile` +
+   `railway.json` (the Dockerfiles `COPY . .` relative to it). *CLI cannot set this —
+   dashboard only.*
+3. **Watch Paths** — set to the service's glob from the table. Without it, **every**
+   push to `main` rebuilds **all** services. *Dashboard only.*
+
+> Note the asymmetry: the `cloud-nats` Railway service builds from `services/nats`.
+> A failed build never replaces a running deployment — Railway keeps the last good one
+> live — so a misconfigured Root Directory is safe to fix and redeploy.
+
+To take a service **off** auto-deploy:
+`railway service source disconnect --service <name>` (then deploy with `railway up`).
+
+---
+
 ## 0. Prerequisites
 
 ```bash

@@ -9,7 +9,7 @@ export function CallToAction() {
       <Container>
         <AnimateOnScroll>
           <div className="max-w-3xl">
-            <div className="section-label mb-6">[ 05 ]</div>
+            <div className="section-label mb-6">[ 07 ]</div>
             <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5.5vw,4.5rem)] leading-[1] text-ink">
               Ready to bring your installation
               <br className="hidden sm:block" /> to{' '}
@@ -20,12 +20,7 @@ export function CallToAction() {
               <Button href="#download" size="lg" pip>
                 Download
               </Button>
-              <Button
-                href={SITE_CONFIG.docsUrl}
-                variant="secondary"
-                size="lg"
-                external
-              >
+              <Button href={SITE_CONFIG.docsUrl} variant="secondary" size="lg">
                 Read the Docs
               </Button>
             </div>

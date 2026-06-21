@@ -14,7 +14,7 @@ export function HowItWorks() {
       <Container>
         <AnimateOnScroll>
           <div className="max-w-3xl mb-16 sm:mb-24">
-            <div className="section-label mb-6">[ 02 // PROCEDURE ]</div>
+            <div className="section-label mb-6">[ 04 // PROCEDURE ]</div>
             <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5vw,3.75rem)] leading-[1] text-ink">
               Three steps to <span className="italic font-light">connected</span>.
             </h2>

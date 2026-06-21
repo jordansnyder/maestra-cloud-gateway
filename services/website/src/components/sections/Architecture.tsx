@@ -3,17 +3,28 @@ import { Glyph } from '@/components/ui/Glyph'
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll'
 
 const STACK = [
-  { label: 'Sites', detail: 'outbound TLS · zero ports exposed' },
-  { label: 'Edge Proxy', detail: 'Envoy · rate limiting · TLS termination' },
-  { label: 'Auth', detail: 'mTLS + OIDC · cryptographic identity' },
-  { label: 'Message Router', detail: 'policy-driven routing' },
-  { label: 'Cloud NATS', detail: 'isolated accounts per site' },
-  { label: 'Policy Engine', detail: 'every flow explicitly allowed' },
-  { label: 'Control Plane', detail: 'site management, certs, audit' },
-  { label: 'Dashboard', detail: 'real-time monitoring' },
+  { label: 'Tools & SDKs', detail: 'TouchDesigner · Unreal · Unity · web · Arduino' },
+  { label: 'Gateways', detail: 'OSC · MQTT · WebSocket bridges' },
+  { label: 'Message Bus', detail: 'NATS · real-time pub/sub · JetStream' },
+  { label: 'Entity Store', detail: 'typed state · history in TimescaleDB' },
+  { label: 'Fleet Manager', detail: 'devices, entities, streams, shows' },
+  { label: 'DMX / Art-Net', detail: 'physical lighting · cues & sequences' },
+  { label: 'Flows', detail: 'Node-RED automation & show control' },
+  { label: 'Dashboard', detail: 'real-time monitoring · Grafana' },
+  { label: 'Cloud Gateway', detail: 'federate sites · mTLS · policy routing' },
 ]
 
-const TECH = ['NATS', 'FastAPI', 'PostgreSQL', 'mTLS', 'OIDC', 'Redis', 'Envoy']
+const TECH = [
+  'NATS',
+  'FastAPI',
+  'PostgreSQL',
+  'TimescaleDB',
+  'Redis',
+  'Node-RED',
+  'MQTT',
+  'Grafana',
+  'Tauri',
+]
 
 export function Architecture() {
   return (
@@ -25,7 +36,7 @@ export function Architecture() {
         <AnimateOnScroll>
           <div className="max-w-3xl mb-16 sm:mb-24">
             <div className="font-mono uppercase tracking-hud text-[0.6875rem] text-paper/60 mb-6">
-              [ 03 // ARCHITECTURE ]
+              [ 05 // ARCHITECTURE ]
             </div>
             <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5vw,3.75rem)] leading-[1] text-paper">
               Serious infrastructure,

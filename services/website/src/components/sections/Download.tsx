@@ -2,7 +2,7 @@ import { DOWNLOAD_LINKS, SITE_CONFIG } from '@/lib/constants'
 import { Container } from '@/components/ui/Container'
 import { AnimateOnScroll } from '@/components/ui/AnimateOnScroll'
 
-const PLATFORMS = ['macos', 'windows', 'linux'] as const
+const PLATFORMS = ['macos_arm', 'macos_intel', 'windows', 'linux'] as const
 
 export function Download() {
   return (
@@ -13,10 +13,14 @@ export function Download() {
       <Container>
         <AnimateOnScroll>
           <div className="max-w-3xl mb-16 sm:mb-24">
-            <div className="section-label mb-6">[ 04 // DOWNLOAD ]</div>
+            <div className="section-label mb-6">[ 06 // DOWNLOAD ]</div>
             <h2 className="font-sans font-medium tracking-display text-[clamp(2rem,5vw,3.75rem)] leading-[1] text-ink">
               Get the <span className="italic font-light">desktop</span> app.
             </h2>
+            <p className="mt-8 max-w-prose text-base sm:text-lg text-ink/75 leading-relaxed">
+              One click to run the entire Maestra stack locally — signed and
+              notarized for macOS, Windows, and Linux.
+            </p>
           </div>
         </AnimateOnScroll>
 

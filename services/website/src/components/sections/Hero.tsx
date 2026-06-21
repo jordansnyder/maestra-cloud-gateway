@@ -25,12 +25,7 @@ export function Hero() {
               <Button href="#download" size="lg" pip>
                 Download
               </Button>
-              <Button
-                href={SITE_CONFIG.docsUrl}
-                variant="secondary"
-                size="lg"
-                external
-              >
+              <Button href={SITE_CONFIG.docsUrl} variant="secondary" size="lg">
                 Read the Docs
               </Button>
             </div>

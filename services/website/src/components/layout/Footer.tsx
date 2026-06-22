@@ -51,7 +51,7 @@ export function Footer() {
               </span>
             </div>
             <span className="font-mono uppercase tracking-hud text-[0.6875rem] text-ink/70">
-              {SITE_CONFIG.name} ── © {new Date().getFullYear()} ── MIT
+              {SITE_CONFIG.name} ── © {new Date().getFullYear()} ── BSL-1.1 · SDKs MIT
             </span>
           </div>
         </div>

@@ -202,7 +202,7 @@ export const FOOTER_LINKS = {
     { label: 'Cloud Gateway', href: LINKS.githubGateway, external: true },
   ],
   legal: [
-    { label: 'License (MIT)', href: LINKS.license, external: true },
+    { label: 'License', href: LINKS.license, external: true },
     { label: 'Changelog', href: LINKS.changelog, external: true },
   ],
 } as const

@@ -1,8 +1,16 @@
-name: Deploy Website
+name: Website Build Check
+
+# Railway auto-deploys the website on push to main via its GitHub integration
+# (Root Directory = services/website, watch path services/website/** — see
+# deploy/railway/DEPLOY.md). This workflow therefore only VALIDATES the build;
+# it does not deploy. The previous `railway up` CLI job was a redundant second
+# deploy path and failed on every push because RAILWAY_TOKEN was never set.
 
 on:
   push:
     branches: [main]
+    paths: ['services/website/**']
+  pull_request:
     paths: ['services/website/**']
 
 jobs:
@@ -19,16 +27,4 @@ jobs:
       - run: npm ci
         working-directory: services/website
       - run: npm run build
-        working-directory: services/website
-
-  deploy:
-    name: Deploy to Railway
-    needs: build-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm install -g @railway/cli
-      - run: railway up --service website --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         working-directory: services/website

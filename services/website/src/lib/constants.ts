@@ -153,30 +153,30 @@ export const STEPS = [
 ] as const
 
 // Desktop release assets. Direct, version-pinned download URLs for the
-// published desktop/v0.2.1 release on GitHub.
-const DL = `${GITHUB}/releases/download/desktop/v0.2.1`
+// published desktop/v0.2.2 release on GitHub.
+const DL = `${GITHUB}/releases/download/desktop/v0.2.2`
 
 export const DOWNLOAD_LINKS = {
   macos_arm: {
-    url: `${DL}/Maestra_0.2.1_aarch64.dmg`,
+    url: `${DL}/Maestra_0.2.2_aarch64.dmg`,
     label: 'macOS',
     arch: 'Apple Silicon (.dmg)',
     icon: 'Apple' as const,
   },
   macos_intel: {
-    url: `${DL}/Maestra_0.2.1_x64.dmg`,
+    url: `${DL}/Maestra_0.2.2_x64.dmg`,
     label: 'macOS',
     arch: 'Intel (.dmg)',
     icon: 'Apple' as const,
   },
   windows: {
-    url: `${DL}/Maestra_0.2.1_x64_en-US.msi`,
+    url: `${DL}/Maestra_0.2.2_x64_en-US.msi`,
     label: 'Windows',
     arch: 'x64 (.msi)',
     icon: 'Monitor' as const,
   },
   linux: {
-    url: `${DL}/Maestra_0.2.1_amd64.AppImage`,
+    url: `${DL}/Maestra_0.2.2_amd64.AppImage`,
     label: 'Linux',
     arch: 'x64 (.AppImage · .deb also available)',
     icon: 'Terminal' as const,

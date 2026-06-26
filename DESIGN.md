@@ -1,66 +1,70 @@
 # DESIGN.md — Maestra Brand Identity
 
+> Source of truth: the implemented site in `services/website`
+> (`src/app/globals.css`, `tailwind.config.ts`, `src/app/layout.tsx`). Keep this
+> document in sync with that code — when they disagree, the code wins.
+
 ## Brand Positioning
 
 Maestra is an open-source orchestration platform for immersive experiences. It connects multi-device, multi-location installations — the kind of interactivity found at Disney, Meow Wolf, and The Void.
 
 **Target audience:** Creative technologists, Imagineers, experience designers — artists who code.
 
+**Tagline:** "Build Worlds That Respond."
+
 **Voice:** Speak to creators, not sysadmins. Show what's possible, not how it works. Technical details are background credibility, never headlines.
 
-**Aesthetic:** Apple-like minimal. Dark, clean, confident. Every element earns its pixels. The site should feel like the immersive experiences Maestra enables — not like enterprise software.
+**Aesthetic:** Editorial / Swiss print. Warm paper, black ink, one decisive red. Confident, structured, and quiet — closer to a technical field manual or an art-book spec sheet than to dark SaaS. Monospace HUD labels, registration marks, and a faint dot grid give it a precise, blueprint feeling. Every element earns its place; nothing decorates.
 
 ---
 
 ## Color System
 
-### Backgrounds
+A small, deliberate palette: warm paper, ink, one accent. No gradients as a primary device.
+
 | Token | Value | Usage |
 |-------|-------|-------|
-| `bg-primary` | `zinc-950` (#09090b) | Page background, hero, main sections |
-| `bg-elevated` | `zinc-900` (#18181b) | Cards, elevated surfaces |
-| `bg-subtle` | `zinc-900/50` | Alternating section backgrounds |
-| `bg-border` | `zinc-800` (#27272a) | Borders, dividers |
+| `ink` | `#0A0A0A` | Primary text, masthead, strong marks |
+| `paper` | `#F4F1EA` | Page background |
+| `paper-2` | `#EBE7DD` | Recessed panels, code surfaces, alternating sections |
+| `ash` | `#6B6660` | Secondary text, captions, HUD labels |
+| `accent` | `#E2462E` | The single red — links, active state, key marks, one CTA per view |
+| `rule` | `rgba(10, 10, 10, 0.12)` | Hairline rules, borders, dividers |
 
-### Text
-| Token | Value | Usage |
-|-------|-------|-------|
-| `text-primary` | `zinc-50` (#fafafa) | Headlines, primary content |
-| `text-secondary` | `zinc-400` (#a1a1aa) | Subtitles, descriptions |
-| `text-muted` | `zinc-500` (#71717a) | Captions, labels, metadata |
-| `text-body` | `zinc-300` (#d4d4d8) | Body text, paragraphs |
+**Selection:** ink background, paper text (`::selection { background: ink; color: paper }`).
 
-### Accent
-| Token | Value | Usage |
-|-------|-------|-------|
-| `accent-solid` | `cyan-500` (#06b6d4) | Buttons, links, interactive elements |
-| `accent-gradient` | `cyan-500` → `violet-500` | Hero gradient, CTA backgrounds, decorative |
-| `accent-hover` | `cyan-400` (#22d3ee) | Hover states |
-
-### Visual Rhythm
-Sections alternate between `bg-primary` and `bg-subtle` to create visual landmarks:
-- Hero: `zinc-950` + gradient mesh
-- Features: `zinc-900/50`
-- How It Works: `zinc-950`
-- Architecture: `zinc-900/50`
-- Download: `zinc-950`
-- CTA: accent gradient banner
+**Restraint:** the red is a punctuation mark, not a fill. Use it for the primary action, the active link, and the occasional registration accent — not for backgrounds, cards, or decoration. When everything is red, nothing is.
 
 ---
 
 ## Typography
 
-**Font:** Inter — loaded via `next/font/google` (auto-self-hosted, zero layout shift)
+Two families, loaded via `next/font/google` (auto self-hosted, zero layout shift).
+
+- **Space Grotesk** (`--font-grotesk`) — display and body. Tight, geometric, confident.
+- **JetBrains Mono** (`--font-mono`) — HUD micro-labels, code, metadata, anything that should read as "instrument."
+
+`font-feature-settings: 'ss01', 'cv11'` is enabled on the body.
 
 | Scale | Class | Usage |
 |-------|-------|-------|
-| Hero | `text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight` | Main headline |
-| Hero (mobile) | `text-4xl font-bold tracking-tight` | Main headline on small screens |
-| Section heading | `text-3xl md:text-4xl font-bold tracking-tight` | Section titles |
-| Section subtitle | `text-lg md:text-xl text-zinc-400` | Below section headings |
-| Body | `text-base text-zinc-300 leading-relaxed` | Paragraphs, descriptions |
-| Small | `text-sm text-zinc-500` | Captions, metadata, labels |
-| Button | `text-sm font-medium` | Button labels |
+| Display | `text-5xl md:text-7xl font-bold tracking-display` | Hero headline |
+| Section heading | `text-3xl md:text-4xl font-bold tracking-display` | Section titles |
+| Body | `text-base leading-relaxed text-ink` (cap width `max-w-prose` = 60ch) | Paragraphs |
+| Secondary | `text-ash` | Subtitles, descriptions |
+| HUD label | `.hud` — `font-mono uppercase tracking-hud text-[0.6875rem] text-ash` | Eyebrows, metadata |
+| Section label | `.section-label` — mono, e.g. `[ 06 // DOWNLOAD ]` | Numbered section markers |
+
+**Letter spacing:** `tracking-display` = `-0.02em` (headlines), `tracking-hud` = `0.08em` (mono labels). Headlines tighten; HUD labels open up.
+
+---
+
+## Shape & Structure
+
+- **Sharp corners everywhere.** `borderRadius.none` is the default; the design uses square corners as a deliberate signature. The only exception is true circles (dots, registration marks).
+- **Hairline rules** (`rule`) separate sections and frame panels — thin, ink at 12% opacity.
+- **Dot grid** (`.grid-dots`) — `radial-gradient(rgba(10,10,10,0.10) 1px, transparent 1px)` at a 24px cell. A faint blueprint texture behind content, not a foreground element.
+- **Registration marks** (`.registration`) — small circular crop marks at opposing corners, evoking print registration. Use sparingly as a structural accent.
 
 ---
 
@@ -68,41 +72,46 @@ Sections alternate between `bg-primary` and `bg-subtle` to create visual landmar
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| Section padding | `py-24 md:py-32` | Vertical spacing between sections |
-| Container | `max-w-6xl mx-auto px-6` | Content width constraint |
-| Card padding | `p-6 md:p-8` | Internal card spacing |
-| Component gap | `gap-8 md:gap-12` | Between cards, feature rows |
+| Section padding | `py-24 md:py-32` | Vertical rhythm between sections |
+| Container | `max-w-6xl mx-auto px-6` | Content width |
+| Prose width | `max-w-prose` (60ch) | Running text |
+| Component gap | `gap-8 md:gap-12` | Between feature rows |
 
 ---
 
-## Animation Principles
+## Motion
 
-1. **CSS/SVG only** — zero JavaScript animation libraries
-2. **Respect `prefers-reduced-motion: reduce`** — all animations must check this media query and provide static fallbacks
-3. **Entrance animations:** fade-in + slide-up on scroll via IntersectionObserver (`AnimateOnScroll` component)
-4. **Hero animation:** 4-6 abstract nodes with staggered `animation-delay`, connected by lines drawn via `stroke-dashoffset`. A pulse radiates from a central gateway node. ~50 lines of CSS keyframes + inline SVG.
-5. **Hover transitions:** `transition-colors duration-200` on interactive elements
-6. **No decorative motion** — every animation must improve hierarchy or communicate state
+1. **CSS/SVG only** — no JavaScript animation libraries.
+2. **Respect `prefers-reduced-motion: reduce`** — animations collapse to ~0.01ms; provide static fallbacks.
+3. **Settle easing:** `cubic-bezier(0.2, 0.8, 0.2, 1)` is the house curve — a quick, decisive settle.
+4. **Vocabulary** (from `tailwind.config.ts`):
+   - `tick-in` — fade + 4px rise; entrance for list/HUD items.
+   - `draw-line` — `stroke-dashoffset` line draw; for connective SVG.
+   - `register` — registration marks snapping into place.
+   - `orbit-slow` — 80s linear orbit; ambient structural motion.
+   - `accent-pulse` — 2.4s opacity pulse on the red; signals "live."
+5. **No decorative motion** — every animation improves hierarchy or communicates state.
 
 ---
 
 ## Component Patterns
 
 ### Buttons
-- **Primary:** `bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-medium rounded-lg px-6 py-3`
-- **Secondary/Ghost:** `border border-zinc-700 hover:border-zinc-600 text-zinc-300 rounded-lg px-6 py-3`
+- **Primary:** ink fill, paper text, square corners, one per view. The red is reserved for links/marks, not button fills (keeps the accent rare).
+- **Secondary/Ghost:** `border border-rule text-ink hover:border-ink/40`, square.
 
-### Cards (used sparingly — cards must earn their existence)
-- `bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors`
+### HUD labels
+Uppercase JetBrains Mono, `tracking-hud`, `ash`. Used as eyebrows above headings and as metadata. This is the brand's most recognizable type signature.
 
 ### Feature Rows (preferred over card grids)
-- Full-width alternating layout: text on one side, abstract SVG visual on the other
-- Alternates left/right alignment per row (Apple product page style)
-- On mobile: stacks single-column, visual above text
+- Full-width alternating layout: text on one side, abstract SVG/diagram on the other.
+- Alternates left/right per row.
+- Mobile: single column, visual above text.
 
 ### Header
-- Fixed with `backdrop-blur-lg bg-zinc-950/80 border-b border-zinc-800/50`
-- Transitions from transparent to blurred on scroll
+- Fixed, `backdrop-blur` over `paper/80`, hairline `border-b border-rule`.
+- Transitions from transparent to blurred on scroll.
+- Wordmark in Space Grotesk; the mark may carry the red.
 
 ---
 
@@ -110,31 +119,38 @@ Sections alternate between `bg-primary` and `bg-subtle` to create visual landmar
 
 | Viewport | Width | Key Changes |
 |----------|-------|-------------|
-| Mobile | 375px | Single-column everything, `text-4xl` hero, stacked CTAs, 2-col footer, 44px touch targets |
-| Tablet | 768px | 2-col features, 3-col footer, side-by-side CTAs |
-| Desktop | 1280px+ | Full alternating feature rows, 4-col footer, full animation |
+| Mobile | 375px | Single-column, `text-5xl` hero, stacked CTAs, 44px touch targets |
+| Tablet | 768px | 2-col features, side-by-side CTAs |
+| Desktop | 1280px+ | Full alternating feature rows, full motion |
 
 ---
 
 ## Accessibility
 
-- Color contrast: zinc-50 on zinc-950 = >15:1 ratio (exceeds WCAG AAA)
-- Touch targets: 44px minimum on all interactive elements
-- Focus indicators: visible ring on all focusable elements
-- Skip-to-content link in layout
-- Heading hierarchy: h1 in hero, h2 for section headings
-- Keyboard navigation for all interactive elements (header, mobile menu, buttons)
-- `prefers-reduced-motion` respected for all animations
+- Color contrast: ink (`#0A0A0A`) on paper (`#F4F1EA`) ≈ 17:1 (exceeds WCAG AAA).
+- Touch targets: 44px minimum on all interactive elements.
+- Focus indicators: visible ring on all focusable elements.
+- Skip-to-content link in layout (`focus:bg-ink focus:text-paper`).
+- Heading hierarchy: h1 in hero, h2 for section headings.
+- Keyboard navigation for header, mobile menu, and buttons.
+- `prefers-reduced-motion` respected for all animations.
 
 ---
 
 ## Anti-Patterns (Never Do This)
 
-1. 3-column symmetrical card grids with icons in colored circles
-2. Centered everything with uniform spacing
-3. Generic hero copy ("Welcome to...", "Unlock the power of...")
-4. Purple/violet gradient backgrounds as primary design element
-5. Decorative blobs, floating circles, wavy SVG dividers
-6. Emoji as design elements
-7. Same background color on every section (use visual rhythm)
-8. "Stacked on mobile" without intentional mobile layout decisions
+1. Dark "SaaS dashboard" treatment — dark zinc/slate backgrounds with cyan/violet accents. (This is the look an earlier draft of this doc described; it is **not** the brand.)
+2. Rounded corners and soft shadows as the default — the brand is square and flat.
+3. Gradient backgrounds (cyan→violet or otherwise) as a primary design element.
+4. The red used as a fill or background instead of a rare accent.
+5. 3-column symmetrical card grids with icons in colored circles.
+6. Centered everything with uniform spacing and no structural rhythm.
+7. Generic hero copy ("Welcome to…", "Unlock the power of…").
+8. Decorative blobs, floating circles, wavy SVG dividers, emoji as design elements.
+9. Same background on every section — alternate `paper` and `paper-2` for visual landmarks.
+
+---
+
+## Companion Surfaces
+
+The Maestra **dashboard** and **docs** (in the `maestra-core` repo) share this identity: Space Grotesk + JetBrains Mono, the red accent, square corners, and HUD labels. They add a **dark "sibling" theme** (warm near-black surfaces, brightened accent `#F2543C`) behind a user toggle, since an operational dashboard benefits from a dark base for long viewing. The marketing site stays light-only — it is the canonical expression of the brand.
